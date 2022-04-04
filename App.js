@@ -1,5 +1,5 @@
-import React from "react";
-import { Animated } from "react-native";
+import React, { useRef, useState } from "react";
+import { Animated, Easing } from "react-native";
 import { TouchableOpacity } from "react-native";
 import styled from "styled-components/native";
 
@@ -17,23 +17,20 @@ const Box = styled.View`
 const AnimateBox = Animated.createAnimatedComponent(Box);
 
 export default function App() {
-	const Y = new Animated.Value(0);
-	// const moveUp = () => {
-	// 	Animated.timing(Y, {
-	// 		toValue: -200,
-	// 		useNativeDriver: true, // animation이 native 단에서 실행
-	// 	}).start();
-	// };
+	const [up, setUp] = useState(false);
+	// useRef 는 다시 렌더링이 일어나더라도 value를 유지하게 해주는 hook 이다.
+	// 쓰는 이유는 toggleUp 이 실행되면 state가 변경되어 전체 코드가 렌더링 되고 Y value 는 초기값 0으로 돌아가기 때문이다.
+	const Y = useRef(new Animated.Value(0)).current;
+	const toggleUp = () => setUp((prev) => !prev);
 	const moveUp = () => {
-		Animated.spring(Y, {
-			toValue: -200,
-			// bounciness: 15,
-			tension: 100,
-			friction: 1,
+		Animated.timing(Y, {
+			toValue: up ? 200 : -200,
 			useNativeDriver: true,
-		}).start();
+			easing: Easing.linear,
+		}).start(toggleUp);
 	};
-	Y.addListener(() => console.log(Y));
+	Y.addListener(() => console.log("Animated State:", Y));
+	console.log("Component State", Y);
 	return (
 		<Container>
 			<TouchableOpacity onPress={moveUp}>
