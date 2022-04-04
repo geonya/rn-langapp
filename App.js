@@ -33,21 +33,26 @@ export default function App() {
 	const panResponder = useRef(
 		PanResponder.create({
 			onStartShouldSetPanResponder: () => true,
+			onPanResponderGrant: () => {
+				console.log("Touch Started");
+				POSITION.setOffset({
+					x: POSITION.x._value,
+					y: POSITION.y._value,
+				});
+			},
+			//dx, dy는 손가락이 이동한 거리이기 때문에 항상 0에서부터 시작한다.
+			// 이전 위치가 어디인지 기억하지 못한다는 것이 문제
 			onPanResponderMove: (_, { dx, dy }) => {
+				console.log("Finger Moving");
 				POSITION.setValue({
 					x: dx,
 					y: dy,
 				});
 			},
 			onPanResponderRelease: () => {
-				Animated.spring(POSITION, {
-					toValue: {
-						x: 0,
-						y: 0,
-					},
-					useNativeDriver: false,
-				}).start();
-			}, // 손가락을 떼었을 때 작동
+				console.log("Touch Finished");
+				POSITION.flattenOffset();
+			},
 		})
 	).current;
 	return (
