@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import styled from "styled-components/native";
-import { Animated, PanResponder } from "react-native";
+import { Animated, Easing, PanResponder } from "react-native";
 import { Text, View } from "react-native";
 
 const BLACK_COLOR = "#1e272e";
@@ -19,7 +19,7 @@ const Edge = styled.View`
 	justify-content: center;
 	align-items: center;
 `;
-const WordContainer = styled.View`
+const WordContainer = styled(Animated.createAnimatedComponent(View))`
 	background-color: ${GREY};
 	width: 100px;
 	height: 100px;
@@ -36,6 +36,7 @@ const Center = styled.View`
 	flex: 3;
 	justify-content: center;
 	align-items: center;
+	z-index: 10;
 `;
 
 const IconCard = styled(Animated.createAnimatedComponent(View))`
@@ -46,8 +47,19 @@ const IconCard = styled(Animated.createAnimatedComponent(View))`
 
 export default function App() {
 	// Values
+	const opacity = useRef(new Animated.Value(1)).current;
 	const scale = useRef(new Animated.Value(1)).current;
 	const position = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+	const scaleKnow = position.y.interpolate({
+		inputRange: [-300, -80],
+		outputRange: [2, 1],
+		extrapolate: "clamp",
+	});
+	const scaleDontKnow = position.y.interpolate({
+		inputRange: [80, 300],
+		outputRange: [1, 2],
+		extrapolate: "clamp",
+	});
 	// Animations
 	const onPressIn = Animated.spring(scale, {
 		toValue: 0.9,
@@ -62,6 +74,18 @@ export default function App() {
 		toValue: 0,
 		useNativeDriver: true,
 	});
+	const onDropScale = Animated.timing(scale, {
+		toValue: 0,
+		duration: 50,
+		easing: Easing.linear,
+		useNativeDriver: true,
+	});
+	const onDropOpacity = Animated.timing(opacity, {
+		toValue: 0,
+		duration: 50,
+		easing: Easing.linear,
+		useNativeDriver: true,
+	});
 	// Pan Responders
 	const panResponder = useRef(
 		PanResponder.create({
@@ -72,8 +96,20 @@ export default function App() {
 			onPanResponderMove: (_, { dx, dy }) => {
 				position.setValue({ x: dx, y: dy });
 			},
-			onPanResponderRelease: () => {
-				Animated.parallel([goHome, onPressOut]).start();
+			onPanResponderRelease: (_, { dy }) => {
+				if (dy < -250 || dy > 250) {
+					Animated.sequence([
+						Animated.parallel([onDropScale, onDropOpacity]),
+						Animated.timing(position, {
+							toValue: 0,
+							useNativeDriver: true,
+							duration: 80,
+							easing: Easing.linear,
+						}),
+					]).start();
+				} else {
+					Animated.parallel([goHome, onPressOut]).start();
+				}
 			},
 		})
 	).current;
@@ -82,7 +118,7 @@ export default function App() {
 	return (
 		<Container>
 			<Edge>
-				<WordContainer>
+				<WordContainer style={{ transform: [{ scale: scaleKnow }] }}>
 					<Word color={GREEN}>알아</Word>
 				</WordContainer>
 			</Edge>
@@ -90,6 +126,7 @@ export default function App() {
 				<IconCard
 					{...panResponder.panHandlers}
 					style={{
+						opacity,
 						transform: [...position.getTranslateTransform(), { scale }],
 					}}
 				>
@@ -97,7 +134,7 @@ export default function App() {
 				</IconCard>
 			</Center>
 			<Edge>
-				<WordContainer>
+				<WordContainer style={{ transform: [{ scale: scaleDontKnow }] }}>
 					<Word color={RED}>몰라</Word>
 				</WordContainer>
 			</Edge>
