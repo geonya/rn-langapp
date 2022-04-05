@@ -1,8 +1,9 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import styled from "styled-components/native";
 import { Animated, Easing, PanResponder } from "react-native";
 import { Text, View } from "react-native";
+import icons from "./icons";
 
 const BLACK_COLOR = "#1e272e";
 const GREY = "#485460";
@@ -106,7 +107,7 @@ export default function App() {
 							duration: 80,
 							easing: Easing.linear,
 						}),
-					]).start();
+					]).start(nextIcon);
 				} else {
 					Animated.parallel([goHome, onPressOut]).start();
 				}
@@ -114,6 +115,20 @@ export default function App() {
 		})
 	).current;
 	// State
+	const [index, setIndex] = useState(0);
+	const nextIcon = () => {
+		Animated.parallel([
+			Animated.spring(scale, {
+				toValue: 1,
+				useNativeDriver: true,
+			}),
+			Animated.spring(opacity, {
+				toValue: 1,
+				useNativeDriver: true,
+			}),
+		]).start();
+		setIndex((prev) => prev + 1);
+	};
 
 	return (
 		<Container>
@@ -130,7 +145,7 @@ export default function App() {
 						transform: [...position.getTranslateTransform(), { scale }],
 					}}
 				>
-					<Ionicons name="beer" color={GREY} size={120} />
+					<Ionicons name={icons[index]} color={GREY} size={120} />
 				</IconCard>
 			</Center>
 			<Edge>
