@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Animated, PanResponder, View, Text } from "react-native";
+import { Animated, PanResponder, View, Text, Dimensions } from "react-native";
 import styled from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
 import icons from "./icons";
@@ -65,14 +65,18 @@ export default function App() {
 		useNativeDriver: true,
 	});
 	const goLeft = Animated.spring(position, {
-		toValue: -400,
+		toValue: -SCREEN_WIDTH - 200,
 		tension: 5,
 		useNativeDriver: true,
+		restSpeedThreshold: 100,
+		restDisplacementThreshold: 100,
 	});
 	const goRight = Animated.spring(position, {
-		toValue: 400,
+		toValue: SCREEN_WIDTH + 200,
 		tension: 5,
 		useNativeDriver: true,
+		restSpeedThreshold: 100, // 애니메이션이 끝난걸로 간주할 시간
+		restDisplacementThreshold: 100, // 애니메이션이 끝갈 걸로 간주하는 거리
 	});
 	// Pan Responders
 	const panResponder = useRef(
